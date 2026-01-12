@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coffee☕</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --coffee-bg: #1f130f;
+      --coffee-panel: #2b1a14;
+      --coffee-accent: #f5c38b;
+      --coffee-accent-soft: #e3a86a;
+      --coffee-text: #fdf5e6;
+      --coffee-muted: #c9b39a;
+      --coffee-chat-bg: #241510;
+      --coffee-chat-border: #3a241a;
+      --coffee-input-bg: #3a241a;
+      --coffee-btn-bg: #f5c38b;
+      --coffee-btn-text: #2b1a14;
+      --coffee-danger: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #3b241a 0, #120806 55%);
+      color: var(--coffee-text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .coffee-shell {
+      background: var(--coffee-panel);
+      border-radius: 16px;
+      padding: 16px 18px 18px;
+      width: 380px;
+      max-width: 100%;
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+      border: 1px solid #3a241a;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a241a;
+      background: var(--coffee-input-bg);
+      color: var(--coffee-text);
+      font-size: 14px;
+    }
+
+    input::placeholder {
+      color: #a88a72;
+    }
+
+    button {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: none;
+      background: var(--coffee-btn-bg);
+      color: var(--coffee-btn-text);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        background 0.1s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+      background: #ffd19f;
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .profile {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #241510;
+      border: 1px solid #3a241a;
+      font-size: 14px;
+      display: none;
+    }
+
+    .profile-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .profile-emoji {
+      font-size: 20px;
+    }
+
+    .status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--coffee-muted);
+      min-height: 16px;
+    }
+
+    .game-panel {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid #3a241a;
+      display: none;
+    }
+
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a241a;
+      background: #3a241a;
+      color: var(--coffee-text);
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .chat-shell {
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: var(--coffee-chat-bg);
+      border: 1px solid var(--coffee-chat-border);
+      font-size: 12px;
+    }
+
+    .chat-log {
+      max-height: 90px;
+      overflow-y: auto;
+      margin-bottom: 4px;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .chat-input-row input {
+      font-size: 12px;
+      padding: 4px 6px;
+    }
+
+    .chat-input-row button {
+      font-size: 12px;
+      padding: 4px 6px;
+    }
+
+    .chat-msg-host {
+      color: #ffd8a0;
+    }
+
+    .chat-msg-joiner {
+      color: #c0e6ff;
+    }
+
+    .chat-msg-system {
+      color: #ffb3b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="coffee-shell">
+    <h1>Coffee☕</h1>
+
+    <div class="row">
+      <input id="emojiInput" placeholder="Emoji" maxlength="4" />
+      <input id="nameInput" placeholder="Name" maxlength="20" />
+    </div>
+
+    <div class="row">
+      <button id="hostBtn">Make Coffee</button>
+      <button id="joinBtn">Get Coffee☕</button>
+    </div>
+
+    <div class="profile" id="profileBox">
+      <div class="profile-line">
+        <span class="profile-emoji" id="profileEmoji">🙂</span>
+        <span id="profileName">Coffee</span>
+      </div>
+      <div class="profile-line">
+        <span id="profileDevice">📱 Device</span>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="game-panel" id="gamePanel">
+      <select id="gameSelect">
+        <option value="">Select a game…</option>
+        <option value="tictactoe">Tic-Tac-Toe</option>
+        <option value="connect4">Connect 4</option>
+        <option value="rps">Rock–Paper–Scissors</option>
+        <option value="battleship">Battleship (Micro)</option>
+        <option value="pong">Pong Duel</option>
+        <option value="memory">Memory Match</option>
+        <option value="dots">Dots & Boxes</option>
+        <option value="reversi">Othello / Reversi</option>
+        <option value="wordguess">Word Guess Duel</option>
+        <option value="codebreaker">Code Breaker</option>
+        <option value="gridchase">Grid Chase</option>
+        <option value="war">War (Card Duel)</option>
+        <option value="chess">Chess</option>
+      </select>
+      <button id="startGameBtn">Start Game</button>
+
+      <div class="chat-shell">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" placeholder="Chat…" />
+          <button id="chatSendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== ELEMENTS =====
+    const emojiInput = document.getElementById("emojiInput");
+    const nameInput = document.getElementById("nameInput");
+    const hostBtn = document.getElementById("hostBtn");
+    const joinBtn = document.getElementById("joinBtn");
+    const profileBox = document.getElementById("profileBox");
+    const profileEmojiEl = document.getElementById("profileEmoji");
+    const profileNameEl = document.getElementById("profileName");
+    const profileDeviceEl = document.getElementById("profileDevice");
+    const statusEl = document.getElementById("status");
+    const gamePanel = document.getElementById("gamePanel");
+    const gameSelect = document.getElementById("gameSelect");
+    const startGameBtn = document.getElementById("startGameBtn");
+    const chatLog = document.getElementById("chatLog");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+
+    // ===== STATE =====
+    let isHost = false;
+    let device = null;
+    let server = null;
+    let characteristic = null;
+
+    // ===== HELPERS =====
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+    }
+
+    function getDeviceLabel() {
+      const ua = navigator.userAgent || "";
+      if (/Android/i.test(ua)) return "📱 Android Phone";
+      if (/iPhone|iPad|iPod/i.test(ua)) return "📱 iOS Device";
+      if (/Windows/i.test(ua)) return "💻 Windows PC";
+      if (/Macintosh/i.test(ua)) return "💻 Mac";
+      return "📱 Device";
+    }
+
+    function updateProfile() {
+      const emoji = (emojiInput.value || "").trim() || "🙂";
+      const rawName = (nameInput.value || "").trim() || "Coffee";
+
+      let name = rawName;
+      let specialCool = false;
+
+      if (rawName.endsWith("@%")) {
+        name = rawName.replace(/@%$/, "");
+        specialCool = true;
+      }
+
+      profileEmojiEl.textContent = emoji;
+      profileNameEl.textContent = name;
+
+      if (specialCool) {
+        profileDeviceEl.textContent = "😎";
+      } else {
+        profileDeviceEl.textContent = getDeviceLabel();
+      }
+
+      profileBox.style.display = "block";
+    }
+
+    function appendChat(from, text, kind = "normal") {
+      const div = document.createElement("div");
+      if (kind === "system") {
+        div.className = "chat-msg-system";
+        div.textContent = `[${from}] ${text}`;
+      } else if (from === "Host") {
+        div.className = "chat-msg-host";
+        div.textContent = `Host: ${text}`;
+      } else if (from === "Joiner") {
+        div.className = "chat-msg-joiner";
+        div.textContent = `Joiner: ${text}`;
+      } else {
+        div.textContent = `${from}: ${text}`;
+      }
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function sendPacket(obj) {
+      if (!characteristic) return;
+      const data = new TextEncoder().encode(JSON.stringify(obj));
+      characteristic.writeValue(data).catch((err) => {
+        console.error("Write failed:", err);
+      });
+    }
+
+    function handleMessage(dataView) {
+      try {
+        const text = new TextDecoder().decode(dataView);
+        const msg = JSON.parse(text);
+
+        if (msg.type === "chat") {
+          appendChat(msg.from === "host" ? "Host" : "Joiner", msg.text);
+        } else if (msg.type === "game-select") {
+          gameSelect.value = msg.game;
+        } else if (msg.type === "game-start") {
+          appendChat("System", `Game started: ${msg.game}`, "system");
+        }
+      } catch (e) {
+        console.log("Bad message", e);
+      }
+    }
+
+    function sendChat(text) {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      appendChat(isHost ? "Host" : "Joiner", trimmed);
+      sendPacket({
+        type: "chat",
+        from: isHost ? "host" : "joiner",
+        text: trimmed,
+      });
+      chatInput.value = "";
+    }
+
+    // ===== BLUETOOTH SETUP =====
+    const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    const CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
+    async function connectAsHost() {
+      isHost = true;
+      updateProfile();
+      setStatus("Requesting Bluetooth device as host…");
+
+      try {
+        const dev = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }],
+          optionalServices: [SERVICE_UUID],
+        });
+        device = dev;
+        setStatus(`Connecting to ${dev.name || "device"}…`);
+        const gatt = await dev.gatt.connect();
+        server = gatt;
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        const char = await service.getCharacteristic(CHAR_UUID);
+        characteristic = char;
+
+        await characteristic.startNotifications();
+        characteristic.addEventListener("characteristicvaluechanged", (event) =>
+          handleMessage(event.target.value)
+        );
+
+        setStatus("Host connected. Waiting in Coffee server…");
+        gamePanel.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        setStatus("Host Bluetooth failed or was cancelled.");
+      }
+    }
+
+    async function connectAsJoiner() {
+      isHost = false;
+      updateProfile();
+      setStatus("Searching for Coffee host…");
+
+      try {
+        const dev = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }],
+          optionalServices: [SERVICE_UUID],
+        });
+        device = dev;
+        setStatus(`Connecting to ${dev.name || "host"}…`);
+        const gatt = await dev.gatt.connect();
+        server = gatt;
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        const char = await service.getCharacteristic(CHAR_UUID);
+        characteristic = char;
+
+        await characteristic.startNotifications();
+        characteristic.addEventListener("characteristicvaluechanged", (event) =>
+          handleMessage(event.target.value)
+        );
+
+        setStatus("Joined Coffee server.");
+        gamePanel.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        setStatus("Join Bluetooth failed or was cancelled.");
+      }
+    }
+
+    // ===== EVENTS =====
+    hostBtn.addEventListener("click", () => {
+      if (!navigator.bluetooth) {
+        setStatus("Web Bluetooth not supported in this browser.");
+        return;
+      }
+      connectAsHost();
+    });
+
+    joinBtn.addEventListener("click", () => {
+      if (!navigator.bluetooth) {
+        setStatus("Web Bluetooth not supported in this browser.");
+        return;
+      }
+      connectAsJoiner();
+    });
+
+    gameSelect.addEventListener("change", () => {
+      if (!isHost || !characteristic) return;
+      const game = gameSelect.value;
+      sendPacket({ type: "game-select", game });
+    });
+
+    startGameBtn.addEventListener("click", () => {
+      if (!isHost || !characteristic) return;
+      const game = gameSelect.value;
+      if (!game) return;
+      sendPacket({ type: "game-start", game });
+      appendChat("System", `Game started: ${game}`, "system");
+    });
+
+    chatSendBtn.addEventListener("click", () => {
+      sendChat(chatInput.value);
+    });
+
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendChat(chatInput.value);
+      }
+    });
+  </script>
+</body>
+</html>
