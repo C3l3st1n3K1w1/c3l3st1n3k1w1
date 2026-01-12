@@ -1,21 +1,1130 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <button id="hostBtn">Make Coffee</button>
-    <div id="status"></div>
-    <script>
-      const statusEl = document.getElementById("status");
-      const hostBtn = document.getElementById("hostBtn");
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coffee☕</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --coffee-bg: #1f130f;
+      --coffee-panel: #2b1a14;
+      --coffee-accent: #f5c38b;
+      --coffee-accent-soft: #e3a86a;
+      --coffee-text: #fdf5e6;
+      --coffee-muted: #c9b39a;
+      --coffee-chat-bg: #241510;
+      --coffee-chat-border: #3a241a;
+      --coffee-input-bg: #3a241a;
+      --coffee-btn-bg: #f5c38b;
+      --coffee-btn-text: #2b1a14;
+      --coffee-danger: #ff6b6b;
+    }
 
-      hostBtn.addEventListener("click", () => {
-        statusEl.textContent = "Button CLICKED.";
-        if (!navigator.bluetooth) {
-          statusEl.textContent += " But navigator.bluetooth is MISSING.";
-        } else {
-          statusEl.textContent += " navigator.bluetooth EXISTS.";
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #3b241a 0, #120806 55%);
+      color: var(--coffee-text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .coffee-shell {
+      background: var(--coffee-panel);
+      border-radius: 16px;
+      padding: 16px 18px 18px;
+      width: 430px;
+      max-width: 100%;
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+      border: 1px solid #3a241a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a241a;
+      background: var(--coffee-input-bg);
+      color: var(--coffee-text);
+      font-size: 14px;
+    }
+
+    input::placeholder {
+      color: #a88a72;
+    }
+
+    button {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: none;
+      background: var(--coffee-btn-bg);
+      color: var(--coffee-btn-text);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        background 0.1s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+      background: #ffd19f;
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .profile {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #241510;
+      border: 1px solid #3a241a;
+      font-size: 14px;
+      display: none;
+    }
+
+    .profile-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .profile-emoji {
+      font-size: 20px;
+    }
+
+    .status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--coffee-muted);
+      min-height: 16px;
+    }
+
+    .error {
+      color: var(--coffee-danger);
+      font-size: 12px;
+      margin-top: 4px;
+      min-height: 14px;
+    }
+
+    .game-panel {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid #3a241a;
+      display: none;
+    }
+
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a241a;
+      background: #3a241a;
+      color: var(--coffee-text);
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .chat-shell {
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: var(--coffee-chat-bg);
+      border: 1px solid var(--coffee-chat-border);
+      font-size: 12px;
+    }
+
+    .chat-log {
+      max-height: 90px;
+      overflow-y: auto;
+      margin-bottom: 4px;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .chat-input-row input {
+      font-size: 12px;
+      padding: 4px 6px;
+    }
+
+    .chat-input-row button {
+      font-size: 12px;
+      padding: 4px 6px;
+    }
+
+    .chat-msg-host {
+      color: #ffd8a0;
+    }
+
+    .chat-msg-joiner {
+      color: #c0e6ff;
+    }
+
+    .chat-msg-system {
+      color: #ffb3b3;
+    }
+
+    /* SOLO MODE PANEL (bottom-right) */
+    .solo-panel {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 220px;
+      background: rgba(20, 10, 7, 0.96);
+      border-radius: 12px;
+      border: 1px solid #3a241a;
+      padding: 8px 8px 10px;
+      font-size: 11px;
+    }
+
+    .solo-header {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .solo-select {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid #3a241a;
+      background: #3a241a;
+      color: var(--coffee-text);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .solo-board {
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #3a241a;
+      padding: 4px;
+      background: #241510;
+      min-height: 100px;
+    }
+
+    .ttt-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-bottom: 4px;
+      justify-items: center;
+    }
+
+    .ttt-cell {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: #3a241a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .rps-row {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .rps-btn {
+      flex: 1;
+      padding: 4px 4px;
+      border-radius: 999px;
+      border: none;
+      background: #f5c38b;
+      color: #2b1a14;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .c4-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 4px;
+      justify-items: center;
+    }
+
+    .c4-cell {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #3a241a;
+      border: 1px solid #4a3022;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .solo-status {
+      font-size: 11px;
+      color: var(--coffee-muted);
+      min-height: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="coffee-shell">
+    <h1>Coffee☕</h1>
+
+    <div class="row">
+      <input id="emojiInput" placeholder="Emoji" maxlength="4" />
+      <input id="nameInput" placeholder="Name" maxlength="20" />
+    </div>
+
+    <div class="row">
+      <button id="hostBtn">Make Coffee</button>
+      <button id="joinBtn">Get Coffee☕</button>
+    </div>
+
+    <div class="profile" id="profileBox">
+      <div class="profile-line">
+        <span class="profile-emoji" id="profileEmoji">🙂</span>
+        <span id="profileName">Coffee</span>
+      </div>
+      <div class="profile-line">
+        <span id="profileDevice">📱 Device</span>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="error" id="error"></div>
+
+    <div class="game-panel" id="gamePanel">
+      <select id="gameSelect">
+        <option value="">Select a game…</option>
+        <option value="tictactoe">Tic-Tac-Toe</option>
+        <option value="connect4">Connect 4</option>
+        <option value="rps">Rock–Paper–Scissors</option>
+        <option value="battleship">Battleship (Micro)</option>
+        <option value="pong">Pong Duel</option>
+        <option value="memory">Memory Match</option>
+        <option value="dots">Dots & Boxes</option>
+        <option value="reversi">Othello / Reversi</option>
+        <option value="wordguess">Word Guess Duel</option>
+        <option value="codebreaker">Code Breaker</option>
+        <option value="gridchase">Grid Chase</option>
+        <option value="war">War (Card Duel)</option>
+        <option value="chess">Chess</option>
+      </select>
+      <button id="startGameBtn">Start Game</button>
+
+      <div class="chat-shell">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" placeholder="Chat…" />
+          <button id="chatSendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOLO MODE PANEL -->
+    <div class="solo-panel">
+      <div class="solo-header">
+        <span>Solo Mode</span>
+      </div>
+      <select id="soloGameSelect" class="solo-select">
+        <option value="tictactoe">Tic-Tac-Toe</option>
+        <option value="rps">Rock–Paper–Scissors</option>
+        <option value="connect4">Connect 4</option>
+      </select>
+      <select id="soloControlSelect" class="solo-select">
+        <option value="both">Control: Both sides</option>
+        <option value="ai">Control: AI opponent</option>
+      </select>
+      <div class="solo-board" id="soloBoard"></div>
+      <div class="solo-status" id="soloStatus"></div>
+    </div>
+  </div>
+
+  <script>
+    // ===== ELEMENTS =====
+    const emojiInput = document.getElementById("emojiInput");
+    const nameInput = document.getElementById("nameInput");
+    const hostBtn = document.getElementById("hostBtn");
+    const joinBtn = document.getElementById("joinBtn");
+    const profileBox = document.getElementById("profileBox");
+    const profileEmojiEl = document.getElementById("profileEmoji");
+    const profileNameEl = document.getElementById("profileName");
+    const profileDeviceEl = document.getElementById("profileDevice");
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+    const gamePanel = document.getElementById("gamePanel");
+    const gameSelect = document.getElementById("gameSelect");
+    const startGameBtn = document.getElementById("startGameBtn");
+    const chatLog = document.getElementById("chatLog");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+
+    const soloGameSelect = document.getElementById("soloGameSelect");
+    const soloControlSelect = document.getElementById("soloControlSelect");
+    const soloBoard = document.getElementById("soloBoard");
+    const soloStatus = document.getElementById("soloStatus");
+
+    // ===== STATE =====
+    let isHost = false;
+    let device = null;
+    let server = null;
+    let characteristic = null;
+
+    // Solo mode state
+    // Tic-Tac-Toe
+    let tttBoard = Array(9).fill(null);
+    let tttCurrent = "X";
+    let tttGameOver = false;
+
+    // RPS
+    let rpsLastPlayerMove = null;
+
+    // Connect 4 (7 columns x 6 rows)
+    const C4_COLS = 7;
+    const C4_ROWS = 6;
+    let c4Board = createEmptyC4Board();
+    let c4Current = "R"; // R = player, Y = AI
+    let c4GameOver = false;
+
+    // ===== HELPERS =====
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+    }
+
+    function setError(msg) {
+      errorEl.textContent = msg || "";
+    }
+
+    function getDeviceLabel() {
+      const ua = navigator.userAgent || "";
+      if (/Android/i.test(ua)) return "📱 Android Phone";
+      if (/iPhone|iPad|iPod/i.test(ua)) return "📱 iOS Device";
+      if (/Windows/i.test(ua)) return "💻 Windows PC";
+      if (/Macintosh/i.test(ua)) return "💻 Mac";
+      return "📱 Device";
+    }
+
+    function isSingleEmoji(str) {
+      if (!str) return false;
+      const trimmed = str.trim();
+      const cleaned = trimmed.replace(/[\uFE0F\u200D]/g, "");
+      return [...cleaned].length === 1;
+    }
+
+    function isValidName(str) {
+      if (!str) return false;
+      const trimmed = str.trim();
+      if (!/^[A-Za-z0-9 ]+$/.test(trimmed)) return false;
+      const spaces = (trimmed.match(/ /g) || []).length;
+      if (spaces > 1) return false;
+      return true;
+    }
+
+    function updateProfile() {
+      setError("");
+      const emojiRaw = (emojiInput.value || "").trim();
+      const nameRaw = (nameInput.value || "").trim();
+
+      if (!isSingleEmoji(emojiRaw)) {
+        setError("Emoji must be exactly 1 emoji.");
+        profileBox.style.display = "none";
+        return false;
+      }
+
+      const nameWithoutSecret = nameRaw.replace(/@%$/, "");
+      if (!isValidName(nameWithoutSecret)) {
+        setError("Name: letters/numbers, max 1 space, no symbols.");
+        profileBox.style.display = "none";
+        return false;
+      }
+
+      let emoji = emojiRaw;
+      let rawName = nameRaw || "Coffee";
+
+      let name = rawName;
+      let specialCool = false;
+
+      if (rawName.endsWith("@%")) {
+        name = rawName.replace(/@%$/, "");
+        specialCool = true;
+      }
+
+      profileEmojiEl.textContent = emoji;
+      profileNameEl.textContent = name;
+
+      if (specialCool) {
+        profileDeviceEl.textContent = "😎";
+      } else {
+        profileDeviceEl.textContent = getDeviceLabel();
+      }
+
+      profileBox.style.display = "block";
+      return true;
+    }
+
+    function appendChat(from, text, kind = "normal") {
+      const div = document.createElement("div");
+      if (kind === "system") {
+        div.className = "chat-msg-system";
+        div.textContent = `[${from}] ${text}`;
+      } else if (from === "Host") {
+        div.className = "chat-msg-host";
+        div.textContent = `Host: ${text}`;
+      } else if (from === "Joiner") {
+        div.className = "chat-msg-joiner";
+        div.textContent = `Joiner: ${text}`;
+      } else {
+        div.textContent = `${from}: ${text}`;
+      }
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function sendPacket(obj) {
+      if (!characteristic) return;
+      const data = new TextEncoder().encode(JSON.stringify(obj));
+      characteristic.writeValue(data).catch((err) => {
+        console.error("Write failed:", err);
       });
-    </script>
-  </body>
-</html>
+    }
 
+    function handleMessage(dataView) {
+      try {
+        const text = new TextDecoder().decode(dataView);
+        const msg = JSON.parse(text);
+
+        if (msg.type === "chat") {
+          appendChat(msg.from === "host" ? "Host" : "Joiner", msg.text);
+        } else if (msg.type === "game-select") {
+          gameSelect.value = msg.game;
+        } else if (msg.type === "game-start") {
+          appendChat("System", `Game started: ${msg.game}`, "system");
+        }
+      } catch (e) {
+        console.log("Bad message", e);
+      }
+    }
+
+    function sendChat(text) {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      appendChat(isHost ? "Host" : "Joiner", trimmed);
+      sendPacket({
+        type: "chat",
+        from: isHost ? "host" : "joiner",
+        text: trimmed,
+      });
+      chatInput.value = "";
+    }
+
+    // ===== BLUETOOTH SETUP =====
+    const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    const CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
+    async function connectAsHost() {
+      isHost = true;
+      if (!updateProfile()) return;
+      setStatus("Requesting Bluetooth device as host…");
+
+      try {
+        const dev = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }],
+          optionalServices: [SERVICE_UUID],
+        });
+        device = dev;
+        setStatus(`Connecting to ${dev.name || "device"}…`);
+        const gatt = await dev.gatt.connect();
+        server = gatt;
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        const char = await service.getCharacteristic(CHAR_UUID);
+        characteristic = char;
+
+        await characteristic.startNotifications();
+        characteristic.addEventListener("characteristicvaluechanged", (event) =>
+          handleMessage(event.target.value)
+        );
+
+        setStatus("Host connected. Waiting in Coffee server…");
+        gamePanel.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        setStatus("Host Bluetooth failed or was cancelled.");
+      }
+    }
+
+    async function connectAsJoiner() {
+      isHost = false;
+      if (!updateProfile()) return;
+      setStatus("Searching for Coffee host…");
+
+      try {
+        const dev = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }],
+          optionalServices: [SERVICE_UUID],
+        });
+        device = dev;
+        setStatus(`Connecting to ${dev.name || "host"}…`);
+        const gatt = await dev.gatt.connect();
+        server = gatt;
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        const char = await service.getCharacteristic(CHAR_UUID);
+        characteristic = char;
+
+        await characteristic.startNotifications();
+        characteristic.addEventListener("characteristicvaluechanged", (event) =>
+          handleMessage(event.target.value)
+        );
+
+        setStatus("Joined Coffee server.");
+        gamePanel.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        setStatus("Join Bluetooth failed or was cancelled.");
+      }
+    }
+
+    // ===== EVENTS =====
+    hostBtn.addEventListener("click", () => {
+      if (!navigator.bluetooth) {
+        setStatus("Web Bluetooth not supported in this browser.");
+        return;
+      }
+      connectAsHost();
+    });
+
+    joinBtn.addEventListener("click", () => {
+      if (!navigator.bluetooth) {
+        setStatus("Web Bluetooth not supported in this browser.");
+        return;
+      }
+      connectAsJoiner();
+    });
+
+    gameSelect.addEventListener("change", () => {
+      if (!isHost || !characteristic) return;
+      const game = gameSelect.value;
+      sendPacket({ type: "game-select", game });
+    });
+
+    startGameBtn.addEventListener("click", () => {
+      if (!isHost || !characteristic) return;
+      const game = gameSelect.value;
+      if (!game) return;
+      sendPacket({ type: "game-start", game });
+      appendChat("System", `Game started: ${game}`, "system");
+    });
+
+    chatSendBtn.addEventListener("click", () => {
+      sendChat(chatInput.value);
+    });
+
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendChat(chatInput.value);
+      }
+    });
+
+    // ===== SOLO MODE: GAME SWITCHER =====
+    soloGameSelect.addEventListener("change", renderSoloGame);
+    soloControlSelect.addEventListener("change", () => {
+      const game = soloGameSelect.value;
+      if (game === "tictactoe") {
+        resetTicTacToe();
+        renderTicTacToe();
+      } else if (game === "rps") {
+        renderRPS();
+      } else if (game === "connect4") {
+        resetConnect4();
+        renderConnect4();
+      }
+    });
+
+    function renderSoloGame() {
+      const game = soloGameSelect.value;
+      if (game === "tictactoe") {
+        resetTicTacToe();
+        renderTicTacToe();
+      } else if (game === "rps") {
+        renderRPS();
+      } else if (game === "connect4") {
+        resetConnect4();
+        renderConnect4();
+      }
+    }
+
+    // ===== SOLO MODE: TIC-TAC-TOE WITH MINIMAX AI =====
+    function resetTicTacToe() {
+      tttBoard = Array(9).fill(null);
+      tttCurrent = "X";
+      tttGameOver = false;
+      soloStatus.textContent = "Tic-Tac-Toe: X starts.";
+    }
+
+    function renderTicTacToe() {
+      soloBoard.innerHTML = "";
+      const grid = document.createElement("div");
+      grid.className = "ttt-grid";
+
+      tttBoard.forEach((cell, idx) => {
+        const div = document.createElement("div");
+        div.className = "ttt-cell";
+        div.textContent = cell || "";
+        div.addEventListener("click", () => handleTicTacToeClick(idx));
+        grid.appendChild(div);
+      });
+
+      soloBoard.appendChild(grid);
+    }
+
+    function handleTicTacToeClick(idx) {
+      if (tttGameOver) return;
+      if (tttBoard[idx]) return;
+
+      const control = soloControlSelect.value;
+
+      if (control === "both") {
+        tttBoard[idx] = tttCurrent;
+        tttCurrent = tttCurrent === "X" ? "O" : "X";
+        checkTicTacToeState();
+        renderTicTacToe();
+      } else {
+        if (tttCurrent !== "X") return;
+        tttBoard[idx] = "X";
+        checkTicTacToeState();
+        renderTicTacToe();
+        if (!tttGameOver) {
+          tttCurrent = "O";
+          ticTacToeAIMove();
+        }
+      }
+    }
+
+    function checkTicTacToeState() {
+      const winner = getTicTacToeWinner(tttBoard);
+      if (winner) {
+        tttGameOver = true;
+        soloStatus.textContent = `Tic-Tac-Toe: ${winner} wins!`;
+      } else if (tttBoard.every((c) => c)) {
+        tttGameOver = true;
+        soloStatus.textContent = "Tic-Tac-Toe: Draw.";
+      } else {
+        if (!tttGameOver) {
+          soloStatus.textContent = `Tic-Tac-Toe: ${tttCurrent}'s turn.`;
+        }
+      }
+    }
+
+    function getTicTacToeWinner(board) {
+      const lines = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+      for (const [a, b, c] of lines) {
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return board[a];
+        }
+      }
+      return null;
+    }
+
+    function ticTacToeAIMove() {
+      const best = minimax(tttBoard, "O");
+      if (best.index !== null && !tttBoard[best.index]) {
+        tttBoard[best.index] = "O";
+      }
+      checkTicTacToeState();
+      renderTicTacToe();
+      if (!tttGameOver) {
+        tttCurrent = "X";
+      }
+    }
+
+    function minimax(board, player) {
+      const winner = getTicTacToeWinner(board);
+      if (winner === "X") return { score: -10, index: null };
+      if (winner === "O") return { score: 10, index: null };
+      if (board.every((c) => c)) return { score: 0, index: null };
+
+      const moves = [];
+      for (let i = 0; i < 9; i++) {
+        if (!board[i]) {
+          const newBoard = board.slice();
+          newBoard[i] = player;
+          const result = minimax(newBoard, player === "O" ? "X" : "O");
+          moves.push({ index: i, score: result.score });
+        }
+      }
+
+      let bestMove;
+      if (player === "O") {
+        let bestScore = -Infinity;
+        for (const move of moves) {
+          if (move.score > bestScore) {
+            bestScore = move.score;
+            bestMove = move;
+          }
+        }
+      } else {
+        let bestScore = Infinity;
+        for (const move of moves) {
+          if (move.score < bestScore) {
+            bestScore = move.score;
+            bestMove = move;
+          }
+        }
+      }
+      return bestMove || { score: 0, index: null };
+    }
+
+    // ===== SOLO MODE: ROCK–PAPER–SCISSORS WITH ADAPTIVE AI =====
+    function renderRPS() {
+      soloBoard.innerHTML = "";
+
+      const row = document.createElement("div");
+      row.className = "rps-row";
+
+      const moves = ["Rock", "Paper", "Scissors"];
+      moves.forEach((m) => {
+        const btn = document.createElement("button");
+        btn.className = "rps-btn";
+        btn.textContent = m;
+        btn.addEventListener("click", () => handleRPSClick(m));
+        row.appendChild(btn);
+      });
+
+      soloBoard.appendChild(row);
+      soloStatus.textContent = "RPS: Choose your move.";
+    }
+
+    function handleRPSClick(playerMove) {
+      const control = soloControlSelect.value;
+      let aiMove;
+
+      if (control === "both") {
+        aiMove = randomRPS();
+      } else {
+        aiMove = strategicRPS(playerMove);
+      }
+
+      const result = rpsResult(playerMove, aiMove);
+      rpsLastPlayerMove = playerMove;
+
+      soloStatus.textContent = `You: ${playerMove} | Opponent: ${aiMove} → ${result}`;
+    }
+
+    function randomRPS() {
+      const moves = ["Rock", "Paper", "Scissors"];
+      return moves[Math.floor(Math.random() * moves.length)];
+    }
+
+    function strategicRPS(playerMove) {
+      const target = rpsLastPlayerMove || playerMove;
+      if (target === "Rock") return "Paper";
+      if (target === "Paper") return "Scissors";
+      if (target === "Scissors") return "Rock";
+      return randomRPS();
+    }
+
+    function rpsResult(p, a) {
+      if (p === a) return "Draw";
+      if (
+        (p === "Rock" && a === "Scissors") ||
+        (p === "Paper" && a === "Rock") ||
+        (p === "Scissors" && a === "Paper")
+      ) {
+        return "You win!";
+      }
+      return "You lose.";
+    }
+
+    // ===== SOLO MODE: CONNECT 4 WITH DEPTH-LIMITED MINIMAX AI =====
+    function createEmptyC4Board() {
+      const board = [];
+      for (let r = 0; r < C4_ROWS; r++) {
+        const row = [];
+        for (let c = 0; c < C4_COLS; c++) {
+          row.push(null);
+        }
+        board.push(row);
+      }
+      return board;
+    }
+
+    function resetConnect4() {
+      c4Board = createEmptyC4Board();
+      c4Current = "R"; // player
+      c4GameOver = false;
+      soloStatus.textContent = "Connect 4: Red (you) starts.";
+    }
+
+    function renderConnect4() {
+      soloBoard.innerHTML = "";
+      const grid = document.createElement("div");
+      grid.className = "c4-grid";
+
+      for (let r = 0; r < C4_ROWS; r++) {
+        for (let c = 0; c < C4_COLS; c++) {
+          const cell = document.createElement("div");
+          cell.className = "c4-cell";
+          const val = c4Board[r][c];
+          if (val === "R") cell.style.background = "#ff4b4b";
+          if (val === "Y") cell.style.background = "#ffd93b";
+          cell.addEventListener("click", () => handleC4Click(c));
+          grid.appendChild(cell);
+        }
+      }
+
+      soloBoard.appendChild(grid);
+    }
+
+    function handleC4Click(col) {
+      if (c4GameOver) return;
+
+      const control = soloControlSelect.value;
+
+      if (control === "both") {
+        if (!dropC4Piece(c4Board, col, c4Current)) return;
+        const winner = checkC4Winner(c4Board);
+        if (winner || isC4Full(c4Board)) {
+          c4GameOver = true;
+          if (winner) {
+            soloStatus.textContent = `Connect 4: ${winner === "R" ? "Red" : "Yellow"} wins!`;
+          } else {
+            soloStatus.textContent = "Connect 4: Draw.";
+          }
+        } else {
+          c4Current = c4Current === "R" ? "Y" : "R";
+          soloStatus.textContent = `Connect 4: ${c4Current === "R" ? "Red" : "Yellow"}'s turn.`;
+        }
+        renderConnect4();
+      } else {
+        // player = R, AI = Y
+        if (c4Current !== "R") return;
+        if (!dropC4Piece(c4Board, col, "R")) return;
+        let winner = checkC4Winner(c4Board);
+        if (winner || isC4Full(c4Board)) {
+          c4GameOver = true;
+          if (winner) {
+            soloStatus.textContent = `Connect 4: ${winner === "R" ? "You win!" : "AI wins!"}`;
+          } else {
+            soloStatus.textContent = "Connect 4: Draw.";
+          }
+          renderConnect4();
+          return;
+        }
+        c4Current = "Y";
+        renderConnect4();
+        connect4AIMove();
+      }
+    }
+
+    function dropC4Piece(board, col, player) {
+      for (let r = C4_ROWS - 1; r >= 0; r--) {
+        if (!board[r][col]) {
+          board[r][col] = player;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function isC4Full(board) {
+      for (let c = 0; c < C4_COLS; c++) {
+        if (!board[0][c]) return false;
+      }
+      return true;
+    }
+
+    function checkC4Winner(board) {
+      // horizontal, vertical, diagonal
+      for (let r = 0; r < C4_ROWS; r++) {
+        for (let c = 0; c < C4_COLS; c++) {
+          const player = board[r][c];
+          if (!player) continue;
+
+          // right
+          if (c + 3 < C4_COLS &&
+              player === board[r][c+1] &&
+              player === board[r][c+2] &&
+              player === board[r][c+3]) return player;
+
+          // down
+          if (r + 3 < C4_ROWS &&
+              player === board[r+1][c] &&
+              player === board[r+2][c] &&
+              player === board[r+3][c]) return player;
+
+          // diag down-right
+          if (r + 3 < C4_ROWS && c + 3 < C4_COLS &&
+              player === board[r+1][c+1] &&
+              player === board[r+2][c+2] &&
+              player === board[r+3][c+3]) return player;
+
+          // diag down-left
+          if (r + 3 < C4_ROWS && c - 3 >= 0 &&
+              player === board[r+1][c-1] &&
+              player === board[r+2][c-2] &&
+              player === board[r+3][c-3]) return player;
+        }
+      }
+      return null;
+    }
+
+    function evaluateC4Board(board) {
+      // simple heuristic: +score for AI (Y), -score for player (R)
+      let score = 0;
+
+      function scoreLine(a, b, c, d) {
+        const line = [a, b, c, d];
+        const yCount = line.filter((x) => x === "Y").length;
+        const rCount = line.filter((x) => x === "R").length;
+        if (yCount > 0 && rCount === 0) {
+          if (yCount === 2) score += 2;
+          if (yCount === 3) score += 5;
+        }
+        if (rCount > 0 && yCount === 0) {
+          if (rCount === 2) score -= 2;
+          if (rCount === 3) score -= 5;
+        }
+      }
+
+      for (let r = 0; r < C4_ROWS; r++) {
+        for (let c = 0; c < C4_COLS; c++) {
+          if (c + 3 < C4_COLS) {
+            scoreLine(board[r][c], board[r][c+1], board[r][c+2], board[r][c+3]);
+          }
+          if (r + 3 < C4_ROWS) {
+            scoreLine(board[r][c], board[r+1][c], board[r+2][c], board[r+3][c]);
+          }
+          if (r + 3 < C4_ROWS && c + 3 < C4_COLS) {
+            scoreLine(board[r][c], board[r+1][c+1], board[r+2][c+2], board[r+3][c+3]);
+          }
+          if (r + 3 < C4_ROWS && c - 3 >= 0) {
+            scoreLine(board[r][c], board[r+1][c-1], board[r+2][c-2], board[r+3][c-3]);
+          }
+        }
+      }
+
+      return score;
+    }
+
+    function cloneC4Board(board) {
+      return board.map((row) => row.slice());
+    }
+
+    function connect4AIMove() {
+      const depth = 4; // depth-limited
+      let bestScore = -Infinity;
+      let bestCol = null;
+
+      for (let c = 0; c < C4_COLS; c++) {
+        const tempBoard = cloneC4Board(c4Board);
+        if (!dropC4Piece(tempBoard, c, "Y")) continue;
+        const score = c4Minimax(tempBoard, depth - 1, false, -Infinity, Infinity);
+        if (score > bestScore) {
+          bestScore = score;
+          bestCol = c;
+        }
+      }
+
+      if (bestCol !== null) {
+        dropC4Piece(c4Board, bestCol, "Y");
+      }
+
+      const winner = checkC4Winner(c4Board);
+      if (winner || isC4Full(c4Board)) {
+        c4GameOver = true;
+        if (winner) {
+          soloStatus.textContent = `Connect 4: ${winner === "Y" ? "AI wins!" : "You win!"}`;
+        } else {
+          soloStatus.textContent = "Connect 4: Draw.";
+        }
+      } else {
+        c4Current = "R";
+        soloStatus.textContent = "Connect 4: Your turn (Red).";
+      }
+      renderConnect4();
+    }
+
+    function c4Minimax(board, depth, maximizing, alpha, beta) {
+      const winner = checkC4Winner(board);
+      if (winner === "Y") return 1000;
+      if (winner === "R") return -1000;
+      if (isC4Full(board) || depth === 0) {
+        return evaluateC4Board(board);
+      }
+
+      if (maximizing) {
+        let maxEval = -Infinity;
+        for (let c = 0; c < C4_COLS; c++) {
+          const temp = cloneC4Board(board);
+          if (!dropC4Piece(temp, c, "Y")) continue;
+          const evalScore = c4Minimax(temp, depth - 1, false, alpha, beta);
+          maxEval = Math.max(maxEval, evalScore);
+          alpha = Math.max(alpha, evalScore);
+          if (beta <= alpha) break;
+        }
+        return maxEval;
+      } else {
+        let minEval = Infinity;
+        for (let c = 0; c < C4_COLS; c++) {
+          const temp = cloneC4Board(board);
+          if (!dropC4Piece(temp, c, "R")) continue;
+          const evalScore = c4Minimax(temp, depth - 1, true, alpha, beta);
+          minEval = Math.min(minEval, evalScore);
+          beta = Math.min(beta, evalScore);
+          if (beta <= alpha) break;
+        }
+        return minEval;
+      }
+    }
+
+    // ===== INITIALIZE SOLO MODE =====
+    renderSoloGame();
+  </script>
+</body>
+</html>
